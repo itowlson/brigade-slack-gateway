@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "lib": [
+            "es6"
+        ],
+        "sourceMap": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true
+    }
+}
