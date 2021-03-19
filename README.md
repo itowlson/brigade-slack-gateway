@@ -17,4 +17,10 @@ Things you need to do to set up the Slack side of this:
   - Copy the signing secret into the `SLACK_SIGNING_SECRET` env var
 - Basic Information > Install your app
 
+Things you need to do on the Brigade side:
+
+* `brig -k service-account create --id slack-event-creator --description "creates events"`
+  - Copy the token into the `SLACK_EVENT_CREATOR_SA_TOKEN` env var
+* `brig -k role grant EVENT_CREATOR --service-account slack-event-creator --source slack`
+
 To run the server: `npm run start` and set up localhost forwarding at ngrok
