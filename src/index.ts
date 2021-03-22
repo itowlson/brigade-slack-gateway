@@ -51,16 +51,23 @@ runServer();
 
 async function onSlashCommand(command: slack.SlackCommandMiddlewareArgs & slack.AllMiddlewareArgs): Promise<void> {
     command.ack(`Unleashing a ${command.payload.text} into the system`);
-    const evts = await (await brigClient()).core().events().create({
+    const payload = {
+        command: command.payload.command,
+        text: command.payload.text,
+        channel: command.payload.channel_name,
+        native: command.payload,
+    };
+    const evt = {
         source: SLACK_GATEWAY_ID,
         type: 'slash_command',
         // labels: {
         //     command: command.payload.command,
         //     channel: command.payload.channel_name
         // },
-        payload: JSON.stringify(command),
-    });
-    console.log(JSON.stringify(evts));
+        payload: JSON.stringify(payload, undefined, 2),
+    };
+    const createdEvts = await (await brigClient()).core().events().create(evt);
+    console.log(`Created ${createdEvts.items.length} event(s) for ${command.payload.command} ${command.payload.text}`);
 }
 
 async function onBiscuitButton(command: slack.SlackShortcutMiddlewareArgs & slack.AllMiddlewareArgs): Promise<void> {
