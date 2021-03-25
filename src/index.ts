@@ -39,8 +39,7 @@ async function brigClient(): Promise<brigade.APIClient> {
 }
 
 app.allCommands(onSlashCommand);
-app.shortcut('biscuit_shortcut', onBiscuitButton);
-app.shortcut('global_biscuit_me', onBiscuitButton);
+app.shortcut(/.+/, onShortcut);
 
 async function runServer() {
     await app.start(port);
@@ -50,11 +49,13 @@ async function runServer() {
 runServer();
 
 async function onSlashCommand(command: slack.SlackCommandMiddlewareArgs & slack.AllMiddlewareArgs): Promise<void> {
-    command.ack(`Unleashing a ${command.payload.text} into the system`);
+    command.ack('Please wait. Your message is important to us. Please wait.'); // - picked up by ${createdEvts.items[0].projectID}`);
     const payload = {
         command: command.payload.command,
         text: command.payload.text,
         channel: command.payload.channel_name,
+        channelId: command.payload.channel_id,
+        responseToken: command.client.token,
         native: command.payload,
     };
     const evt = {
@@ -68,25 +69,30 @@ async function onSlashCommand(command: slack.SlackCommandMiddlewareArgs & slack.
     };
     const createdEvts = await (await brigClient()).core().events().create(evt);
     console.log(`Created ${createdEvts.items.length} event(s) for ${command.payload.command} ${command.payload.text}`);
+    command.say(`Unleashed a ${command.payload.text} into the system - picked up by ${createdEvts.items[0].projectID}`);
 }
 
-async function onBiscuitButton(command: slack.SlackShortcutMiddlewareArgs & slack.AllMiddlewareArgs): Promise<void> {
-    if (command.payload.type === 'message_action') {
-        command.ack();
-        await command.say(`Here is your ${command.payload.message.text}`);  // bot needs chat:write scope, *AND* to be added to channel
-    } else {
-        command.ack();
-        // await command.say('Thank you for using Global Biscuit Services');  // not defined (because no channel ID in global case?)
-        // await command.respond('Thank you for using Global Biscuit Services');  // not defined either (no response_url?)
-        await command.client.views.open({
-            trigger_id: command.shortcut.trigger_id,
-            view: {
-                type: 'modal',
-                title: { type: 'plain_text', text: 'Biscuit Services' },
-                blocks: [
-                    { type: 'section', text: { type: 'plain_text', text: 'Thank you and enjoy your biscuit' } }
-                ]
-            }
-        });
-    }
+async function onShortcut(shortcut: slack.SlackShortcutMiddlewareArgs & slack.AllMiddlewareArgs): Promise<void> {
+    const payload = (shortcut.payload.type === 'message_action') ?
+        {
+            responseToken: shortcut.client.token,
+            text: shortcut.payload.message.text,
+            channel: shortcut.payload.channel.name,
+            channelId: shortcut.payload.channel.id,
+            native: shortcut.payload,
+        }
+        :
+        {
+            responseToken: shortcut.client.token,
+            native: shortcut.payload,
+        };
+
+    const evt = {
+        source: SLACK_GATEWAY_ID,
+        type: shortcut.payload.type,
+        payload: JSON.stringify(payload, undefined, 2),
+    };
+    const createdEvts = await (await brigClient()).core().events().create(evt);
+    console.log(`Created ${createdEvts.items.length} event(s) for ${shortcut.payload.type}`);
+    shortcut.ack();
 }
