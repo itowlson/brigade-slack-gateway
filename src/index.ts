@@ -6,6 +6,7 @@ const BRIGADE_URL = 'https://localhost:8443';
 const SLACK_GATEWAY_ID = 'slack';
 const SLACK_EVENT_CREATOR_SA_TOKEN = process.env.SLACK_EVENT_CREATOR_SA_TOKEN || 'ERROR: NO SERVICE ACCOUNT TOKEN';
 
+// TODO: We can get rid of this once Slack release with the slash command regex update
 class MyApp extends slack.App {
     constructor(opts: slack.AppOptions | undefined) {
         super(opts);
@@ -49,7 +50,6 @@ async function runServer() {
 runServer();
 
 async function onSlashCommand(command: slack.SlackCommandMiddlewareArgs & slack.AllMiddlewareArgs): Promise<void> {
-    command.ack('Please wait. Your message is important to us. Please wait.'); // - picked up by ${createdEvts.items[0].projectID}`);
     const payload = {
         command: command.payload.command,
         text: command.payload.text,
@@ -69,7 +69,7 @@ async function onSlashCommand(command: slack.SlackCommandMiddlewareArgs & slack.
     };
     const createdEvts = await (await brigClient()).core().events().create(evt);
     console.log(`Created ${createdEvts.items.length} event(s) for ${command.payload.command} ${command.payload.text}`);
-    command.say(`Unleashed a ${command.payload.text} into the system - picked up by ${createdEvts.items[0].projectID}`);
+    command.ack(`Unleashed a ${command.payload.text} into the system - picked up by ${createdEvts.items[0].projectID}`);
 }
 
 async function onShortcut(shortcut: slack.SlackShortcutMiddlewareArgs & slack.AllMiddlewareArgs): Promise<void> {
