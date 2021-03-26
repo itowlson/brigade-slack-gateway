@@ -51,12 +51,8 @@ runServer();
 
 async function onSlashCommand(command: slack.SlackCommandMiddlewareArgs & slack.AllMiddlewareArgs): Promise<void> {
     const payload = {
-        command: command.payload.command,
-        text: command.payload.text,
-        channel: command.payload.channel_name,
-        channelId: command.payload.channel_id,
-        responseToken: command.client.token,
-        native: command.payload,
+        body: command.body,
+        responseToken: command.client.token
     };
     const evt = {
         source: SLACK_GATEWAY_ID,
@@ -65,7 +61,7 @@ async function onSlashCommand(command: slack.SlackCommandMiddlewareArgs & slack.
         //     command: command.payload.command,
         //     channel: command.payload.channel_name
         // },
-        payload: JSON.stringify(payload, undefined, 2),
+        payload: JSON.stringify(payload),
     };
     const createdEvts = await (await brigClient()).core().events().create(evt);
     console.log(`Created ${createdEvts.items.length} event(s) for ${command.payload.command} ${command.payload.text}`);
@@ -73,24 +69,14 @@ async function onSlashCommand(command: slack.SlackCommandMiddlewareArgs & slack.
 }
 
 async function onShortcut(shortcut: slack.SlackShortcutMiddlewareArgs & slack.AllMiddlewareArgs): Promise<void> {
-    const payload = (shortcut.payload.type === 'message_action') ?
-        {
-            responseToken: shortcut.client.token,
-            text: shortcut.payload.message.text,
-            channel: shortcut.payload.channel.name,
-            channelId: shortcut.payload.channel.id,
-            native: shortcut.payload,
-        }
-        :
-        {
-            responseToken: shortcut.client.token,
-            native: shortcut.payload,
-        };
-
+    const payload = {
+        body: shortcut.body,
+        responseToken: shortcut.client.token
+    };
     const evt = {
         source: SLACK_GATEWAY_ID,
         type: shortcut.payload.type,
-        payload: JSON.stringify(payload, undefined, 2),
+        payload: JSON.stringify(payload),
     };
     const createdEvts = await (await brigClient()).core().events().create(evt);
     console.log(`Created ${createdEvts.items.length} event(s) for ${shortcut.payload.type}`);
