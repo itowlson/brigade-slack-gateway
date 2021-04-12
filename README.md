@@ -1,4 +1,11 @@
-**Currently just the skeleton of a Slack app endpoint**
+# Slack Gateway for Brigade 2
+
+This is currently a very basic Slack gateway that accepts slash commands, message
+actions and global shortcuts and emits them into Brigade for projects to pick up
+and process.
+
+It works with Brigade 2 alpha 3.  At the moment it has been tested only for
+local development.
 
 # Setup
 
@@ -37,6 +44,16 @@
   `SLACK_EVENT_CREATOR_SA_TOKEN` environment variables
 * Run the gateway: `npm run start`
 
+# Notes and limitations
+
+At the moment, the gateway is confined to a single Slack application.  If you want to configure
+events into multiple Slack applications, you'll need to deploy multiple instances of the
+gateway.
+
+**TODO:** What is the right way to remove this limitation (if we want to)?  Skip the Bolt
+stuff and just pass on messages directly, with the application ID as a label or even
+a qualifier?  This makes it the workflow's problem to verify the signature though...
+
 # Gateway information
 
 The ID of the Slack gateway is `slack`.
@@ -56,8 +73,6 @@ https://api.slack.com/interactivity/slash-commands#what_are_commands
 
 ### Labels
 
-**These are not yet implemented because of the Brigade 'must match' restriction.**
-
 * **command:** the command name, including the slash (e.g. `/release`)
 * **channel:** the name of the channel, excluding the `#` (e.g. `hound-activities`)
 
@@ -73,8 +88,6 @@ mapped to the gateway URL in the Slack application.  See
 https://api.slack.com/interactivity/shortcuts/using#shortcut_types
 
 ### Labels
-
-**These are not yet implemented because of the Brigade 'must match' restriction.**
 
 * **callback_id:** the action ID defined in the Slack application (e.g. `release`)
 * **channel:** the name of the channel, excluding the `#` (e.g. `hound-activities`)
@@ -92,8 +105,6 @@ https://api.slack.com/interactivity/shortcuts/using#shortcut_types
 
 
 ### Labels
-
-**These are not yet implemented because of the Brigade 'must match' restriction.**
 
 * **callback_id:** the action ID defined in the Slack application (e.g. `release`)
 
