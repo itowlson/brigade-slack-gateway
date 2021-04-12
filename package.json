@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/itowlson/brigade-slack-gateway#readme",
   "dependencies": {
-    "@brigadecore/brigade-sdk": "file:../brigade-sdk-for-js/brigadecore-brigade-sdk-0.0.1.tgz",
+    "@brigadecore/brigade-sdk": "file:../brigade-sdk-for-js/brigadecore-brigade-sdk-0.0.3.tgz",
     "@slack/bolt": "^3.3.0"
   },
   "devDependencies": {

@@ -35,7 +35,7 @@ const app = new MyApp({
     token: process.env.SLACK_BOT_TOKEN,
 });
 
-async function brigClient(): Promise<brigade.APIClient> {
+function brigClient(): brigade.APIClient {
     return new brigade.APIClient(BRIGADE_URL, SLACK_EVENT_CREATOR_SA_TOKEN, { allowInsecureConnections: true });
 }
 
@@ -54,16 +54,17 @@ async function onSlashCommand(command: slack.SlackCommandMiddlewareArgs & slack.
         body: command.body,
         responseToken: command.client.token
     };
+    const labels = {
+        command: command.payload.command,
+        channel: command.payload.channel_name
+    };
     const evt = {
         source: SLACK_GATEWAY_ID,
         type: 'slash_command',
-        // labels: {
-        //     command: command.payload.command,
-        //     channel: command.payload.channel_name
-        // },
         payload: JSON.stringify(payload),
+        labels,
     };
-    const createdEvts = await (await brigClient()).core().events().create(evt);
+    const createdEvts = await brigClient().core().events().create(evt);
     console.log(`Created ${createdEvts.items.length} event(s) for ${command.payload.command} ${command.payload.text}`);
     command.ack(`Unleashed a ${command.payload.text} into the system - picked up by ${createdEvts.items[0].projectID}`);
 }
@@ -73,12 +74,19 @@ async function onShortcut(shortcut: slack.SlackShortcutMiddlewareArgs & slack.Al
         body: shortcut.body,
         responseToken: shortcut.client.token
     };
-    const evt = {
+    const labels: { [key: string]: string } = {
+        callback_id: shortcut.payload.callback_id,
+    };
+    if (shortcut.payload.type === 'message_action') {
+        labels.channel = shortcut.payload.channel.name;
+    }
+    const evt: brigade.core.Event = {
         source: SLACK_GATEWAY_ID,
         type: shortcut.payload.type,
         payload: JSON.stringify(payload),
+        labels,
     };
-    const createdEvts = await (await brigClient()).core().events().create(evt);
+    const createdEvts = await brigClient().core().events().create(evt);
     console.log(`Created ${createdEvts.items.length} event(s) for ${shortcut.payload.type}`);
     shortcut.ack();
 }
